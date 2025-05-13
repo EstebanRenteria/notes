@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import {
   login as apiLogin,
   logout as apiLogout,
-  validateToken,
 } from "@/api/auth";
 
 export const useAuthStore = defineStore("auth", {
@@ -24,13 +23,10 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async checkAuth() {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("apiKey");
       if (token) {
-        const isValid = await validateToken(token);
-        if (isValid) {
-          this.token = token;
-          return true;
-        }
+        this.apiKey = token;
+        return true;
       }
       this.logout();
       return false;
@@ -38,13 +34,14 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       try {
-        this.token = null;
+        this.apiKey = null;
         this.user = null;
-        localStorage.removeItem("apiKey");
-        delete axios.defaults.headers.common["Authorization"];
+        router.push('/login')
+        apiLogout();
       } catch (error) {
         console.error("Error en logout:", error);
       }
     },
   },
+  persist: true
 });

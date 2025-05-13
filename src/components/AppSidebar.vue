@@ -45,14 +45,14 @@ const menuItems = [
 <style scoped>
 .sidebar {
   position: fixed;
-  top: 0;
+  top: 60px !important;
   left: 0;
   bottom: 0;
   width: 250px;
   background: white;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
-  z-index: 100;
+  z-index: 90;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 

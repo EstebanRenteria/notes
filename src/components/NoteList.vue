@@ -34,45 +34,27 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import NoteItem from './NoteItem.vue'
-import { useNotesStore } from '@/stores/notes.store'
 
-const emit = defineEmits(['edit'])
-
-const notesStore = useNotesStore()
-const searchQuery = ref('')
-const loading = ref(true)
-
-const storeNotes = computed(() => Array.isArray(notesStore.notes) ? notesStore.notes : [])
-
-onMounted(async () => {
-  try {
-    await notesStore.loadNotes()
-  } catch (error) {
-    console.error("Error loading notes:", error)
-  } finally {
-    loading.value = false
-  }
+const props = defineProps({
+  notes: Array,
+  loading: Boolean
 })
+const emit = defineEmits(['edit', 'delete'])
+
+const searchQuery = ref('')
 
 const filteredNotes = computed(() => {
-  if (!searchQuery.value) return storeNotes.value
-  
-  return storeNotes.value.filter(note => {
+  if (!searchQuery.value) return props.notes
+  return props.notes.filter(note => {
     const content = note.contentText || note.content || ''
     return content.toLowerCase().includes(searchQuery.value.toLowerCase())
   })
 })
 
-const handleSearch = () => {
-  // Puedes agregar debounce aquí si es necesario
-}
-
-const handleDelete = async (id) => {
-  if (confirm('¿Estás seguro de eliminar esta nota?')) {
-    await notesStore.deleteNote(id)
-  }
+const handleDelete = (id) => {
+  emit('delete', id)
 }
 </script>
 

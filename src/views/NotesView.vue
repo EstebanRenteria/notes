@@ -118,7 +118,6 @@ const safeNotes = computed(() => Array.isArray(notes.value) ? notes.value : [])
 
 const filteredNotes = computed(() => {
   let filtered = [...safeNotes.value]
-  
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(note => 
@@ -138,7 +137,7 @@ const filteredNotes = computed(() => {
       filtered = filtered.filter(note => note.category === 'personal')
       break
   }
-  
+
   switch (sortOption.value) {
     case 'newest':
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -150,7 +149,6 @@ const filteredNotes = computed(() => {
       filtered.sort((a, b) => (a.contentText || '').localeCompare(b.contentText || ''))
       break
   }
-  
   return filtered
 })
 
@@ -171,7 +169,7 @@ const showNoteForm = (note) => {
 const handleSave = async (noteData) => {
   try {
     if (noteData._id) {
-      await updateNote(noteData)
+      await updateNote(noteData._id,noteData)
     } else {
       await createNote(noteData)
     }

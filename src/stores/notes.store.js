@@ -56,14 +56,20 @@ export const useNotesStore = defineStore('notes', {
       }
     },
     
-    async updateNote({ id, ...noteData }) {
+    async updateNote({ ...noteData }) {
       this.loading = true
       this.error = null
       try {
-        const updatedNote = await apiUpdateNote(id, noteData)
-        const index = this.notes.findIndex(n => n.id === id)
-        if (index !== -1) this.notes.splice(index, 1, updatedNote)
-        if (this.currentNote?.id === id) this.currentNote = updatedNote
+        const updatedNote = await apiUpdateNote(noteData._id, noteData)
+    
+        const index = this.notes.findIndex(n => n._id === updatedNote._id)
+        if (index !== -1) {
+          this.notes.splice(index, 1, updatedNote)
+        }
+        if (this.currentNote?._id === updatedNote._id) {
+          this.currentNote = updatedNote
+        }
+    
         return updatedNote
       } catch (error) {
         this.error = error.message

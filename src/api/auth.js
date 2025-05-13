@@ -14,19 +14,7 @@ export const login = async (credentials) => {
   }
 }
 
-export const logout = async () => {
-  // Limpiar token del lado del cliente
-  localStorage.removeItem('token')
-  delete axios.defaults.headers.common['Authorization']
-}
-
-export const validateToken = async (token) => {
-  try {
-    const response = await axios.get(`${API_URL}/auth/validate`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    return response.data.valid
-  } catch (error) {
-    return false
-  }
+export const logout = () => {
+  localStorage.removeItem('apiKey');
+  delete axios.defaults.headers.common['Authorization'];
 }

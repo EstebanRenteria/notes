@@ -74,11 +74,9 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { darkMode, toggleDarkMode } = useDarkMode()
 
-// Referencia al menú de usuario
 const userMenu = ref(null)
 const showUserMenu = ref(false)
 
-// Datos del usuario
 const user = computed(() => authStore.user || {
   firstName: 'Test',
   lastName: 'User1',
@@ -92,19 +90,15 @@ const userInitials = computed(() => {
   return `${user.value.firstName?.charAt(0) || ''}${user.value.lastName?.charAt(0) || ''}`
 })
 
-// Alternar menú de usuario
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value
 }
 
-// Cerrar menú al hacer clic fuera
 const handleClickOutside = (event) => {
   if (userMenu.value && !userMenu.value.contains(event.target)) {
     showUserMenu.value = false
   }
 }
-
-// Configurar evento de clic fuera
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
@@ -113,7 +107,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// Cerrar sesión
 const logout = async () => {
   try {
     await authStore.logout()

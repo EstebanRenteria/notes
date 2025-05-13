@@ -3,12 +3,13 @@ import { useNotesStore } from '@/stores/notes.store'
 
 export function useNotes() {
   const notesStore = useNotesStore()
+
   const searchQuery = ref('')
   const loading = ref(false)
   const error = ref(null)
 
   onMounted(async () => {
-    if (notesStore.notes.length === 0) {
+    if (!notesStore.notes || notesStore.notes.length === 0) {
       await loadNotes()
     }
   })
@@ -16,6 +17,7 @@ export function useNotes() {
   const safeNotes = computed(() => {
     return Array.isArray(notesStore.notes) ? notesStore.notes : []
   })
+
   const loadNotes = async () => {
     loading.value = true
     error.value = null
@@ -32,10 +34,9 @@ export function useNotes() {
   const filteredNotes = computed(() => {
     const query = searchQuery.value.toLowerCase().trim()
     if (!query) return safeNotes.value
-    
     return safeNotes.value.filter(note => {
-      const textToSearch = note.contentText || note.content || ''
-      return textToSearch.toLowerCase().includes(query)
+      const text = (note.contentText || note.content || '').toLowerCase()
+      return text.includes(query)
     })
   })
 
@@ -45,36 +46,42 @@ export function useNotes() {
     })
   })
 
+  const createNote = async (noteData) => {
+    try {
+      return await notesStore.createNote(noteData)
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message || 'Error al crear nota'
+      throw err
+    }
+  }
+
+  const updateNote = async (id, noteData) => {
+    try {
+      return await notesStore.updateNote(noteData)
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message || 'Error al actualizar nota'
+      throw err
+    }
+  }
+
+  const deleteNote = async (id) => {
+    try {
+      await notesStore.deleteNote(id)
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message || 'Error al eliminar nota'
+      throw err
+    }
+  }
+
   return {
-    notes: sortedNotes,       
-    rawNotes: safeNotes,     
+    notes: sortedNotes,        
+    rawNotes: safeNotes,      
     searchQuery,
     loading,
     error,
     loadNotes,
-    createNote: async (noteData) => {
-      try {
-        return await notesStore.createNote(noteData)
-      } catch (err) {
-        error.value = err.response?.data?.message || err.message || 'Error al crear nota'
-        throw err
-      }
-    },
-    updateNote: async (id, noteData) => {
-      try {
-        return await notesStore.updateNote(id, noteData)
-      } catch (err) {
-        error.value = err.response?.data?.message || err.message || 'Error al actualizar nota'
-        throw err
-      }
-    },
-    deleteNote: async (id) => {
-      try {
-        await notesStore.deleteNote(id)
-      } catch (err) {
-        error.value = err.response?.data?.message || err.message || 'Error al eliminar nota'
-        throw err
-      }
-    }
+    createNote,
+    updateNote,
+    deleteNote
   }
 }

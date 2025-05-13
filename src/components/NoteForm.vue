@@ -4,7 +4,7 @@
       <div class="modal-container" :class="{ 'dark-mode': darkMode }">
         <div class="note-form">
           <div class="form-header">
-            <h2>{{ form.id ? 'Editar Nota' : 'Nueva Nota' }}</h2>
+            <h2>{{ form._id ? 'Editar Nota' : 'Nueva Nota' }}</h2>
             <button class="close-btn" @click="$emit('cancel')">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -144,10 +144,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { useAuthStore } from '@/stores/auth.store'
 
 const { darkMode } = useDarkMode()
+const authStore = useAuthStore()
+
+const currentUserId = computed(() => authStore.user?._id || authStore.user?.id)
 
 const props = defineProps({
   note: {
@@ -168,7 +172,7 @@ const colorOptions = [
 ]
 
 const form = reactive({
-  id: null,
+  _id: null,
   workspace: {},
   noteCode: '',
   title: '',
@@ -184,22 +188,24 @@ const form = reactive({
   origin: {
     modelName: '',
     docId: ''
-  }
+  },
+  createdAt: '',
+  createdBy: ''
 })
 
-// 🟢 Solución: Actualizar el formulario cada vez que cambie props.note
 watch(() => props.note, (newNote) => {
   if (newNote) {
     Object.assign(form, {
       ...newNote,
       workspace: props.workspace,
       checklist: newNote.checklist || [],
-      attachments: newNote.attachments || [],
-      origin: newNote.origin || { modelName: '', docId: '' }
+      origin: newNote.origin || { modelName: '', docId: '' },
+      createdAt: newNote.createdAt || '',
+      createdBy: newNote.createdBy || ''
     })
   } else {
     Object.assign(form, {
-      id: null,
+      _id: null,
       workspace: props.workspace,
       noteCode: '',
       title: '',
@@ -212,47 +218,38 @@ watch(() => props.note, (newNote) => {
       assignee: {},
       collaborators: {},
       index: 0,
-      origin: { modelName: '', docId: '' }
+      origin: { modelName: '', docId: '' },
+      createdAt: '',
+      createdBy: ''
     })
   }
 }, { immediate: true })
 
 const addChecklistItem = () => {
-  form.checklist.push({
-    text: '',
-    checked: false
-  })
+  form.checklist.push({ text: '', checked: false })
 }
 
 const removeChecklistItem = (index) => {
   form.checklist.splice(index, 1)
 }
 
-const handleFileChange = (e) => {
-  const newFiles = Array.from(e.target.files).map(file => ({
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    file // Mantener la referencia al objeto File
-  }))
-  form.attachments = [...form.attachments, ...newFiles]
-}
-
-const removeFile = (index) => {
-  form.attachments.splice(index, 1)
-}
-
 const submitForm = () => {
-  // Preparar datos para enviar
+  const now = new Date().toISOString()
+
   const noteData = {
-    ...form,
-    attachments: form.attachments.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: file.url || null
-    })),
-    checklist: form.checklist.filter(item => item.text.trim() !== '')
+    _id: form._id, 
+    title: form.title,
+    noteCode: form.noteCode,
+    color: form.color,
+    sticky: form.sticky,
+    origin: form.origin,
+    content: form.content,
+    contentText: form.contentText,
+    checklist: form.checklist.filter(item => item.text.trim() !== ''),
+    createdAt: form.createdAt || now,
+    updatedAt: now,
+    createdBy: form.createdBy || currentUserId.value,
+    updatedBy: currentUserId.value
   }
 
   emit('save', noteData)
@@ -261,7 +258,6 @@ const submitForm = () => {
 
 
 <style scoped>
-/* Estilos del modal */
 .modal-overlay {
   position: fixed;
   top: 0;
